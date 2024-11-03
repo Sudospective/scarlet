@@ -59,6 +59,7 @@ int main() {
   luaSound["y"] = &Sound::y;
   luaSound["LoadSource"] = &Sound::LoadSource;
   luaSound["Play"] = &Sound::Play;
+  luaSound["SetPosition"] = &Sound::SetPosition;
   luaSound["volume"] = sol::property(&Sound::GetVolume, &Sound::SetVolume);
 
   std::string title = "";

@@ -13,9 +13,12 @@ class Sprite : public Quad {
     texture = nullptr;
   }
   ~Sprite() {
-    SDL_DestroyTexture(texture);
+    if (texture)
+      SDL_DestroyTexture(texture);
   }
   void LoadTexture(const char* path) {
+    if (texture)
+      SDL_DestroyTexture(texture);
     SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
     SDL_Surface* surface = IMG_Load(path);
     texture = SDL_CreateTextureFromSurface(renderer, surface);

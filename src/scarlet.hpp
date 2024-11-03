@@ -95,6 +95,8 @@ namespace Scarlet {
     void FindControllers() {
       Log::Print("Enumerating controllers...");
 
+      Log::Print("Detected " + std::to_string(SDL_NumJoysticks()) + " joysticks...");
+
       for (int i = 0; i < SDL_NumJoysticks(); i++) {
         SDL_GameController* gamepad;
         if (SDL_IsGameController(i)) {
@@ -373,6 +375,8 @@ namespace Scarlet {
       Log::Print("Starting engine...");
 
       Input::GetInstance().Init();
+      Input::GetInstance().FindControllers();
+
       running = true;
       
       (*lua)["init"] = []() {};

@@ -9,8 +9,14 @@
 
 class Sound : public Gizmo {
  public:
-  Sound() { chunk = nullptr; }
-  ~Sound() {}
+  Sound() {
+    chunk = nullptr;
+    channel = -1;
+  }
+  ~Sound() {
+    if (chunk)
+      Mix_FreeChunk(chunk);
+  }
 
  public:
   void LoadSource(const char* path) {
@@ -23,7 +29,7 @@ class Sound : public Gizmo {
     if (!chunk) {
       Scarlet::Log::Error("Cannot play sound: no source loaded.");
     }
-    Mix_PlayChannel(-1, chunk, 0);
+    channel = Mix_PlayChannel(-1, chunk, 0);
   }
   void SetVolume(float vol) {
     volume = vol;
@@ -33,9 +39,16 @@ class Sound : public Gizmo {
   float GetVolume() const {
     return volume;
   }
+  void SetPosition() {
+    sol::state* lua = Scarlet::Lua::GetInstance().GetState();
+    float sw = (*lua)["scarlet"]["window"]["width"];
+    int left = static_cast<Uint8>(SDL_clamp((sw - x) / sw, 0.0f, 1.0f) * 255u);
+    Mix_SetPanning(channel, left, 255 - left);
+  }
 
  private:
   float volume;
+  int channel;
   Mix_Chunk* chunk;
 };
 
