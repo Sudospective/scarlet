@@ -222,26 +222,25 @@ namespace Scarlet {
       Log::Print("Audio initialized.");
     }
     void PlayMusic(const char* path) {
-      if (music)
-        StopMusic();
+      StopMusic();
       music = Mix_LoadMUS(path);
       if (!music) {
         Log::Error("Unable to load file '" + std::string(path) + "': " + std::string(Mix_GetError()));
       }
       Mix_PlayMusic(music, -1);
     }
+    void StopMusic() {
+      if (Mix_PlayingMusic() > 0) {
+        Mix_PauseMusic();
+      }
+    }
     void SetVolume(float vol) {
       volume = vol;
       float logVol = log(1 + volume);
       Mix_VolumeMusic(MIX_MAX_VOLUME * logVol);
     }
-    float GetVolume() {
+    float GetVolume() const {
       return volume;
-    }
-    void StopMusic() {
-      if (Mix_PlayingMusic() > 0) {
-        Mix_PauseMusic();
-      }
     }
 
    public:
@@ -249,7 +248,11 @@ namespace Scarlet {
 
    private:
     Audio() { music = nullptr; }
-    ~Audio() { if (music) StopMusic(); }
+    ~Audio() {
+      if (Mix_PlayingMusic() > 0)
+        StopMusic();
+      Mix_CloseAudio();
+    }
 
    private:
     float volume;

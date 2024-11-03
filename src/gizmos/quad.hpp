@@ -10,10 +10,10 @@ class Quad : public Gizmo {
   Quad() : Gizmo() {
     sol::state* lua = Scarlet::Lua::GetInstance().GetState();
     color = lua->create_table_with(
-      "r", 255u,
-      "g", 255u,
-      "b", 255u,
-      "a", 255u
+      "r", 1.0f,
+      "g", 1.0f,
+      "b", 1.0f,
+      "a", 1.0f
     );
 
     w = h = 0.0f;
@@ -28,13 +28,19 @@ class Quad : public Gizmo {
     SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
     SDL_Texture* texture = Scarlet::Graphics::GetDefaultTexture();
 
+    SDL_Color newColor;
+    newColor.r = static_cast<Uint8>(255u * static_cast<float>(color["r"]));
+    newColor.g = static_cast<Uint8>(255u * static_cast<float>(color["g"]));
+    newColor.b = static_cast<Uint8>(255u * static_cast<float>(color["b"]));
+    newColor.a = static_cast<Uint8>(255u * static_cast<float>(color["a"]));
+
     SDL_Color oldColor;
     SDL_BlendMode oldBlend;
     SDL_GetTextureColorMod(texture, &oldColor.r, &oldColor.g, &oldColor.b);
     SDL_GetTextureAlphaMod(texture, &oldColor.a);
     SDL_GetTextureBlendMode(texture, &oldBlend);
-    SDL_SetTextureColorMod(texture, color["r"], color["g"], color["b"]);
-    SDL_SetTextureAlphaMod(texture, color["a"]);
+    SDL_SetTextureColorMod(texture, newColor.r, newColor.g, newColor.b);
+    SDL_SetTextureAlphaMod(texture, newColor.a);
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     SDL_RenderCopyEx(
       renderer,

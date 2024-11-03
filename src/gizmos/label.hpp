@@ -72,13 +72,19 @@ class Label : public Gizmo {
 
     SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
 
+    SDL_Color newColor;
+    newColor.r = static_cast<Uint8>(255u * static_cast<float>(color["r"]));
+    newColor.g = static_cast<Uint8>(255u * static_cast<float>(color["g"]));
+    newColor.b = static_cast<Uint8>(255u * static_cast<float>(color["b"]));
+    newColor.a = static_cast<Uint8>(255u * static_cast<float>(color["a"]));
+
     SDL_Color oldColor;
     SDL_BlendMode oldBlend;
     SDL_GetTextureColorMod(texture, &oldColor.r, &oldColor.g, &oldColor.b);
     SDL_GetTextureAlphaMod(texture, &oldColor.a);
     SDL_GetTextureBlendMode(texture, &oldBlend);
-    SDL_SetTextureColorMod(texture, color["r"], color["g"], color["b"]);
-    SDL_SetTextureAlphaMod(texture, color["a"]);
+    SDL_SetTextureColorMod(texture, newColor.r, newColor.g, newColor.b);
+    SDL_SetTextureAlphaMod(texture, newColor.a);
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
     SDL_RenderCopyEx(
       renderer,

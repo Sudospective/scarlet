@@ -52,6 +52,15 @@ int main() {
   luaLabel["LoadFont"] = &Label::LoadFont;
   luaLabel["text"] = sol::property(&Label::GetText, &Label::SetText);
 
+  sol::usertype<Sound> luaSound = lua->new_usertype<Sound>("Sound");
+  luaSound["name"] = &Sound::name;
+  luaSound["aux"] = &Sound::aux;
+  luaSound["x"] = &Sound::x;
+  luaSound["y"] = &Sound::y;
+  luaSound["LoadSource"] = &Sound::LoadSource;
+  luaSound["Play"] = &Sound::Play;
+  luaSound["volume"] = sol::property(&Sound::GetVolume, &Sound::SetVolume);
+
   std::string title = "";
   int width = 0;
   int height = 0;
