@@ -27,6 +27,8 @@ class Sprite : public Quad {
     SDL_FreeSurface(surface);
   }
   void Draw() {
+    if (!texture) return;
+
     SDL_Rect rect;
     rect.x = x - w / 2;
     rect.y = y - h / 2;
@@ -63,7 +65,7 @@ class Sprite : public Quad {
     SDL_SetTextureBlendMode(texture, oldBlend);
   }
 
- private:
+ protected:
   SDL_Texture* texture;
 };
 

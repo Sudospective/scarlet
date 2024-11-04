@@ -5,11 +5,7 @@
 
 using namespace Scarlet;
 
-int main() {
-  Engine engine;
-
-  sol::state* lua = Lua::GetInstance().GetState();
-
+void registerGizmos(sol::state* lua) {
   sol::usertype<Gizmo> luaGizmo = lua->new_usertype<Gizmo>("Gizmo");
   luaGizmo["name"] = &Gizmo::name;
   luaGizmo["aux"] = &Gizmo::aux;
@@ -61,6 +57,29 @@ int main() {
   luaSound["Play"] = &Sound::Play;
   luaSound["SetPosition"] = &Sound::SetPosition;
   luaSound["volume"] = sol::property(&Sound::GetVolume, &Sound::SetVolume);
+
+  sol::usertype<AnimatedSprite> luaAnimSprite = lua->new_usertype<AnimatedSprite>("AnimatedSprite");
+  luaAnimSprite["name"] = &AnimatedSprite::name;
+  luaAnimSprite["aux"] = &AnimatedSprite::aux;
+  luaAnimSprite["color"] = &AnimatedSprite::color;
+  luaAnimSprite["x"] = &AnimatedSprite::x;
+  luaAnimSprite["y"] = &AnimatedSprite::y;
+  luaAnimSprite["w"] = sol::property(&AnimatedSprite::GetWidth);
+  luaAnimSprite["h"] = sol::property(&AnimatedSprite::GetHeight);
+  luaAnimSprite["rot"] = &AnimatedSprite::rot;
+  luaAnimSprite["Update"] = &AnimatedSprite::Update;
+  luaAnimSprite["Draw"] = &AnimatedSprite::Draw;
+  luaAnimSprite["LoadTexture"] = &AnimatedSprite::LoadTexture;
+  luaAnimSprite["LoadFrameData"] = &AnimatedSprite::LoadFrameData;
+  luaAnimSprite["SetCurrentAnimation"] = &AnimatedSprite::SetCurrentAnimation;
+}
+
+int main() {
+  Engine engine;
+
+  sol::state* lua = Lua::GetInstance().GetState();
+
+  registerGizmos(lua);
 
   std::string title = "";
   int width = 0;
