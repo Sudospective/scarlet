@@ -1,4 +1,6 @@
 #include <filesystem>
+#include <mutex>
+#include <thread>
 
 #include "gizmos.hpp"
 #include "scarlet.hpp"
@@ -85,6 +87,7 @@ int main() {
   int width = 0;
   int height = 0;
   bool fullscreen = false;
+  bool vsync = true;
 
   sol::table config = lua->create_table();
 
@@ -95,20 +98,44 @@ int main() {
   if (config["width"] == nullptr) config["width"] = 640;
   if (config["height"] == nullptr) config["height"] = 360;
   if (config["fullscreen"] == nullptr) config["fullscreen"] = false;
+  if (config["vsync"] == nullptr) config["vsync"] = true;
 
   title = config["title"];
   width = config["width"];
   height = config["height"];
   fullscreen = config["fullscreen"];
+  vsync = config["vsync"];
 
-  if (engine.Init(title.c_str(), width, height, fullscreen)) {
+  if (engine.Init(
+    title.c_str(),
+    width,
+    height,
+    fullscreen,
+    vsync
+  )) {
     engine.Start();
   }
 
+  std::mutex mutex;
+
+  std::function input = [&]() {
+    mutex.lock();
+    while (engine.IsRunning()) {
+      engine.PollEvents();
+    }
+    mutex.unlock();
+  };
+
+  std::thread thread = std::thread(input);
+
   while (engine.IsRunning()) {
+    mutex.lock();
     engine.Update();
     engine.Draw();
+    mutex.unlock();
   }
+
+  thread.join();
 
   return 0;
 }

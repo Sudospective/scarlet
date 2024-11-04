@@ -264,7 +264,7 @@ namespace Scarlet {
 
   class Graphics {
    public:
-    static bool Init(const char* title, int width, int height, bool fullscreen) {
+    static bool Init(const char* title, int width, int height, bool fullscreen, bool vsync) {
       Log::Print("Initializing graphics...");
 
       if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -290,6 +290,7 @@ namespace Scarlet {
 
       SDL_RenderSetLogicalSize(renderer, width, height);
       SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+      SDL_RenderSetVSync(renderer, vsync ? 1 : 0);
 
       SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(
         0,
@@ -366,10 +367,10 @@ namespace Scarlet {
     ~Engine() { if (running) Stop(); }
   
    public:
-    bool Init(const char* title, int width, int height, bool fullscreen) {
+    bool Init(const char* title, int width, int height, bool fullscreen, bool vsync) {
       Log::Print("Initializing engine...");
 
-      if (!Graphics::Init(title, width, height, fullscreen)) {
+      if (!Graphics::Init(title, width, height, fullscreen, vsync)) {
         Log::Error("Failed to initialize Graphics.");
         return false;
       };
@@ -431,8 +432,6 @@ namespace Scarlet {
       }
     }
     void Update() {
-      PollEvents();
-
       last = now;
       now = SDL_GetPerformanceCounter();
       float dt = static_cast<float>(
