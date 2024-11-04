@@ -264,7 +264,7 @@ namespace Scarlet {
 
   class Graphics {
    public:
-    static bool Init(const char* title, int width, int height) {
+    static bool Init(const char* title, int width, int height, bool fullscreen) {
       Log::Print("Initializing graphics...");
 
       if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -288,6 +288,9 @@ namespace Scarlet {
         return false;
       }
 
+      SDL_RenderSetLogicalSize(renderer, width, height);
+      SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+
       SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(
         0,
         1, 1,
@@ -306,9 +309,9 @@ namespace Scarlet {
       sol::table windowTable = lua->create_table_with(
         "width", width,
         "height", height,
-        "title", title
+        "title", title,
+        "fullscreen", sol::property(&Graphics::IsFullscreen, &Graphics::SetFullscreen)
       );
-
       (*lua)["scarlet"] = lua->create_table_with(
         "window", windowTable
       );
@@ -331,12 +334,22 @@ namespace Scarlet {
     static void PostDraw() {
       SDL_RenderPresent(renderer);
     }
+    static void SetFullscreen(bool on) {
+      fullscreen = on;
+      SDL_SetWindowFullscreen(window, fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    }
+    static bool IsFullscreen() {
+      return fullscreen;
+    }
     static SDL_Renderer* GetMainRenderer() { return renderer; }
     static SDL_Texture* GetDefaultTexture() { return texture; }
     static SDL_Window* GetMainWindow() { return window; }
 
    private:
     Graphics();
+
+   private:
+    inline static bool fullscreen = false;
     inline static SDL_Renderer* renderer = nullptr;
     inline static SDL_Texture* texture = nullptr;
     inline static SDL_Window* window = nullptr;
@@ -353,10 +366,10 @@ namespace Scarlet {
     ~Engine() { if (running) Stop(); }
   
    public:
-    bool Init(const char* title, int width, int height) {
+    bool Init(const char* title, int width, int height, bool fullscreen) {
       Log::Print("Initializing engine...");
 
-      if (!Graphics::Init(title, width, height)) {
+      if (!Graphics::Init(title, width, height, fullscreen)) {
         Log::Error("Failed to initialize Graphics.");
         return false;
       };

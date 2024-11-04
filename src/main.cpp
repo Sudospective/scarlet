@@ -84,6 +84,7 @@ int main() {
   std::string title = "";
   int width = 0;
   int height = 0;
+  bool fullscreen = false;
 
   sol::table config = lua->create_table();
 
@@ -93,12 +94,14 @@ int main() {
   if (config["title"] == nullptr) config["title"] = "Scarlet";
   if (config["width"] == nullptr) config["width"] = 640;
   if (config["height"] == nullptr) config["height"] = 360;
+  if (config["fullscreen"] == nullptr) config["fullscreen"] = false;
 
   title = config["title"];
   width = config["width"];
   height = config["height"];
+  fullscreen = config["fullscreen"];
 
-  if (engine.Init(title.c_str(), width, height)) {
+  if (engine.Init(title.c_str(), width, height, fullscreen)) {
     engine.Start();
   }
 
