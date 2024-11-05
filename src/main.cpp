@@ -1,11 +1,14 @@
 #include <filesystem>
-#include <mutex>
-#include <thread>
+
+#include <SDL2/SDL_thread.h>
 
 #include "gizmos.hpp"
 #include "scarlet.hpp"
 
 using namespace Scarlet;
+
+SDL_mutex* mutex = nullptr;
+Engine* engine = nullptr;
 
 void registerGizmos(sol::state* lua) {
   sol::usertype<Gizmo> luaGizmo = lua->new_usertype<Gizmo>("Gizmo");
@@ -76,8 +79,23 @@ void registerGizmos(sol::state* lua) {
   luaAnimSprite["SetCurrentAnimation"] = &AnimatedSprite::SetCurrentAnimation;
 }
 
+int handleUpdate(void*) {
+  while (true) {
+    SDL_LockMutex(mutex);
+    if (!engine->IsRunning()) {
+      SDL_UnlockMutex(mutex);
+      break;
+    }
+    engine->Update();
+    engine->Draw();
+    SDL_UnlockMutex(mutex);
+    SDL_Delay(1);
+  }
+  return 0;
+}
+
 int main() {
-  Engine engine;
+  engine = new Engine;
 
   sol::state* lua = Lua::GetInstance().GetState();
 
@@ -105,37 +123,30 @@ int main() {
   height = config["height"];
   fullscreen = config["fullscreen"];
   vsync = config["vsync"];
-
-  if (engine.Init(
+  
+  if (engine->Init(
     title.c_str(),
-    width,
-    height,
-    fullscreen,
-    vsync
+    width, height,
+    fullscreen, vsync
   )) {
-    engine.Start();
+    engine->Start();
   }
 
-  std::mutex mutex;
+  mutex = SDL_CreateMutex();
 
-  std::function input = [&]() {
-    mutex.lock();
-    while (engine.IsRunning()) {
-      engine.PollEvents();
+  SDL_Thread* updateThread = SDL_CreateThread(handleUpdate, "UpdateThread", nullptr);
+
+  while (true) {
+    SDL_LockMutex(mutex);
+    if (!engine->IsRunning()) {
+      SDL_UnlockMutex(mutex);
+      break;
     }
-    mutex.unlock();
-  };
-
-  std::thread thread = std::thread(input);
-
-  while (engine.IsRunning()) {
-    mutex.lock();
-    engine.Update();
-    engine.Draw();
-    mutex.unlock();
+    engine->HandleEvents();
+    SDL_UnlockMutex(mutex);
   }
 
-  thread.join();
+  SDL_WaitThread(updateThread, nullptr);
 
   return 0;
 }

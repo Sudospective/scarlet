@@ -410,26 +410,31 @@ namespace Scarlet {
       running = false;
       Log::Print("Engine stopped.");
     }
-    void PollEvents() {
+    void HandleEvents() {
       SDL_Event event;
-      SDL_PollEvent(&event);
 
-      switch (event.type) {
-        case SDL_QUIT: {
-          Stop();
-          break;
-        }
-        case SDL_CONTROLLERDEVICEADDED: {
-          break;
-        }
-        case SDL_CONTROLLERDEVICEREMOVED: {
-          break;
-        }
-        default: {
-          Input::GetInstance().HandleEvent(&event);
-          break;
+      SDL_PumpEvents();
+
+      while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) > 0) {
+        switch (event.type) {
+          case SDL_QUIT: {
+            Log::Print("Quit invoked.");
+            Stop();
+            break;
+          }
+          case SDL_CONTROLLERDEVICEADDED: {
+            break;
+          }
+          case SDL_CONTROLLERDEVICEREMOVED: {
+            break;
+          }
+          default: {
+            Input::GetInstance().HandleEvent(&event);
+            break;
+          }
         }
       }
+
     }
     void Update() {
       last = now;
