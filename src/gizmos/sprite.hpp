@@ -1,7 +1,9 @@
 #ifndef GIZMO_SPRITE_HPP
 #define GIZMO_SPRITE_HPP
 
-#include <SDL2/SDL_image.h>
+//#include <SDL2/SDL_image.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include "scarlet.hpp"
 
@@ -20,11 +22,21 @@ class Sprite : public Quad {
     if (texture)
       SDL_DestroyTexture(texture);
     SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
-    SDL_Surface* surface = IMG_Load(path);
+    int width, height, channels;
+    unsigned char* data = stbi_load(path, &width, &height, &channels, 0);
+    auto pitch = width * 4;
+    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
+      static_cast<void*>(data),
+      width, height,
+      32, pitch,
+      0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF
+    );
+    //SDL_Surface* surface = IMG_Load(path);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     w = surface->w;
     h = surface->h;
     SDL_FreeSurface(surface);
+    stbi_image_free(data);
   }
   void Draw() {
     if (!texture) return;
