@@ -52,11 +52,11 @@ function init()
   bg.h = sh
 
   dummy:LoadTexture("assets/dummy.png")
-  dummy.color = {r = 0, g = 1, b = 1, a = 1}
+  dummy.color = {r = 0, g = 1, b = 0, a = 1}
   dummy.x = scx
   dummy.y = scy
 
-  purple:LoadTexture("assets/purple-run.png");
+  purple:LoadTexture("assets/purple-run.png")
   purple:LoadFrameData({
     animations = {
       -- Run Right
@@ -134,7 +134,7 @@ function init()
   purple.y = scy
 
   goodboy.name = "GoodBoy"
-  goodboy.color = {r = 0.5, g = 0, b = 1, a = 1}
+  goodboy.color = {r = 0.5, g = 0, b = 1, a = 0.5}
   goodboy.x = scx
   goodboy.y = scy
   goodboy.w = 64
@@ -149,10 +149,10 @@ function init()
   hey.y = sh - 24
 
   bass:LoadSource("assets/bass.wav")
-  bass.volume = 0.25
+  bass.volume = 0.05
 
   scarlet.music.play("assets/snuffy.ogg")
-  scarlet.music.volume(0.25)
+  scarlet.music.volume(0.05)
 end
 
 function input(event)
@@ -208,7 +208,7 @@ function update(dt)
   if lastAnim ~= anims.index then
     purple:SetCurrentAnimation(anims.index)
   end
-  purple:Update(dt)
+  purple:UpdateAnimation(dt)
 
   hey.aux = hey.aux + dt
   if hey.aux >= 0.5 then

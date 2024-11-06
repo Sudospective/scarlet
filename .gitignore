@@ -1,4 +1,8 @@
+.vs/
+.vscode/
+
 [Bb]uild/
+
 test/scarlet
 test/scarlet.exe
-.vscode/
+test/*.dll
