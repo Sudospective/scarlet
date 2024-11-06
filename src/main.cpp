@@ -72,7 +72,7 @@ void registerGizmos(sol::state* lua) {
   luaAnimSprite["w"] = sol::property(&AnimatedSprite::GetWidth);
   luaAnimSprite["h"] = sol::property(&AnimatedSprite::GetHeight);
   luaAnimSprite["rot"] = &AnimatedSprite::rot;
-  luaAnimSprite["Update"] = &AnimatedSprite::Update;
+  luaAnimSprite["UpdateAnimation"] = &AnimatedSprite::UpdateAnimation;
   luaAnimSprite["Draw"] = &AnimatedSprite::Draw;
   luaAnimSprite["LoadTexture"] = &AnimatedSprite::LoadTexture;
   luaAnimSprite["LoadFrameData"] = &AnimatedSprite::LoadFrameData;
@@ -147,6 +147,8 @@ int main() {
   }
 
   SDL_WaitThread(updateThread, nullptr);
+
+  delete engine;
 
   return 0;
 }

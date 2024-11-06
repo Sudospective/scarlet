@@ -314,6 +314,7 @@ namespace Scarlet {
         "title", title,
         "fullscreen", sol::property(&Graphics::IsFullscreen, &Graphics::SetFullscreen)
       );
+
       (*lua)["scarlet"] = lua->create_table_with(
         "window", windowTable
       );

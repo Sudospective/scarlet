@@ -46,7 +46,7 @@ class AnimatedSprite : public Sprite {
     }
     SetCurrentAnimation(1);
   }
-  void Update(float dt) {
+  void UpdateAnimation(float dt) {
     if (!currentAnim) return;
 
     Frame* frame = currentAnim->GetCurrentFrame();
@@ -54,7 +54,6 @@ class AnimatedSprite : public Sprite {
 
     currentTime += dt;
     if (currentTime >= currentAnim->GetSpeed()) {
-      //Scarlet::Log::Print(std::to_string(frame->id));
       if (frame->id + 1 >= currentAnim->GetNumFrames())
         currentAnim->SetCurrentFrame(0);
       else
