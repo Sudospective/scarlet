@@ -276,14 +276,28 @@ namespace Scarlet {
       window = SDL_CreateWindow(title,
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         width, height,
-        SDL_WINDOW_OPENGL
+        0
       );
       if (!window) {
         Log::Error("Unable to create SDL window.");
         return false;
       }
 
-      renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+      int rendererIndex = -1;
+      for (int i = 0; i < SDL_GetNumRenderDrivers(); i++) {
+        SDL_RendererInfo info;
+        SDL_GetRenderDriverInfo(i, &info);
+        if (strcmp(info.name, "opengl")) {
+          rendererIndex = i;
+          break;
+        }
+      }
+      if (rendererIndex < 0) {
+        Log::Error("OpenGL not found");
+        return false;
+      }
+
+      renderer = SDL_CreateRenderer(window, rendererIndex, SDL_RENDERER_ACCELERATED);
       if (!renderer) {
         Log::Error("Unable to create SDL renderer.");
         return false;
@@ -296,11 +310,11 @@ namespace Scarlet {
       SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormat(
         0,
         1, 1,
-        32, SDL_PIXELFORMAT_RGBA8888
+        32, SDL_PIXELFORMAT_RGB888
       );
-      SDL_FillRect(surface, nullptr, SDL_MapRGBA(
+      SDL_FillRect(surface, nullptr, SDL_MapRGB(
         surface->format,
-        255u, 255u, 255u, 255u
+        255u, 255u, 255u
       ));
 
       texture = SDL_CreateTextureFromSurface(renderer, surface);

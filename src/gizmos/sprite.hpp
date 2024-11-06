@@ -24,14 +24,13 @@ class Sprite : public Quad {
     SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
     int width, height, channels;
     unsigned char* data = stbi_load(path, &width, &height, &channels, 0);
-    auto pitch = width * 4;
-    SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
+    int pitch = width * 4;
+    SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(
       static_cast<void*>(data),
       width, height,
       32, pitch,
-      0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF
+      SDL_PIXELFORMAT_ABGR8888
     );
-    //SDL_Surface* surface = IMG_Load(path);
     texture = SDL_CreateTextureFromSurface(renderer, surface);
     w = surface->w;
     h = surface->h;
@@ -41,7 +40,6 @@ class Sprite : public Quad {
   void Draw() {
     if (!texture) return;
 
-    SDL_Rect rect;
     rect.x = x - w / 2;
     rect.y = y - h / 2;
     rect.w = w;
@@ -79,6 +77,7 @@ class Sprite : public Quad {
 
  protected:
   SDL_Texture* texture;
+  SDL_Rect rect;
 };
 
 #endif // GIZMO_SPRITE_HPP

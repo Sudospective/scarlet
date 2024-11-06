@@ -60,6 +60,8 @@ class AnimatedSprite : public Sprite {
         currentAnim->SetCurrentFrame(frame->id + 1);
       currentTime = 0;
     }
+    w = frame->rect.w;
+    h = frame->rect.h;
   }
   void Draw() {
     if (!texture) return;
@@ -68,11 +70,10 @@ class AnimatedSprite : public Sprite {
     Frame* frame = currentAnim->GetCurrentFrame();
     if (!frame) return;
 
-    SDL_Rect rect;
-    rect.x = x - frame->rect.w / 2;
-    rect.y = y - frame->rect.h / 2;
-    rect.w = frame->rect.w;
-    rect.h = frame->rect.h;
+    rect.x = x - w / 2;
+    rect.y = y - h / 2;
+    rect.w = w;
+    rect.h = h;
 
     SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
 
