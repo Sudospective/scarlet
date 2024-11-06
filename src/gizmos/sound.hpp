@@ -20,9 +20,10 @@ class Sound : public Gizmo {
 
  public:
   void LoadSource(const char* path) {
-    chunk = Mix_LoadWAV(path);
+    std::string filepath = Scarlet::prefix + std::string(path);
+    chunk = Mix_LoadWAV(filepath.c_str());
     if (!chunk) {
-      Scarlet::Log::Error("Unable to load file '" + std::string(path) + "': " + std::string(Mix_GetError()));
+      Scarlet::Log::Error("Unable to load file '" + filepath + "': " + std::string(Mix_GetError()));
     }
   }
   void Play() {

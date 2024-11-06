@@ -41,7 +41,8 @@ class Label : public Gizmo {
     if (broken) return;
     if (font)
       TTF_CloseFont(font);
-    font = TTF_OpenFont(path, size);
+    std::string filepath = Scarlet::prefix + std::string(path);
+    font = TTF_OpenFont(filepath.c_str(), size);
   }
   void SetText(const char* newText) {
     text = newText;

@@ -28,7 +28,8 @@ function class(name)
       __call = class.define
     })
   end
-  function newclass.new(class, ...)
+  function newclass.new(...)
+    local class = _ENV[newclass.__class]
     local object = {}
     for k, v in pairs(class.__members) do
       object[k] = v
@@ -41,3 +42,7 @@ function class(name)
   end
   return setmetatable(newclass, {__call = newclass.define})
 end
+
+return {
+  class = class
+}

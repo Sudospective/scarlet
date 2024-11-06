@@ -94,7 +94,12 @@ int handleUpdate(void*) {
   return 0;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+  Scarlet::prefix = "";
+  if (argc > 1) {
+    Scarlet::prefix = std::string(argv[1]) + "/";
+  }
+
   engine = new Engine;
 
   sol::state* lua = Lua::GetInstance().GetState();
@@ -109,8 +114,8 @@ int main() {
 
   sol::table config = lua->create_table();
 
-  if (std::filesystem::exists("config.lua")) {
-    config = lua->script_file("config.lua");
+  if (std::filesystem::exists(prefix + "config.lua")) {
+    config = lua->script_file(prefix + "config.lua");
   }
   if (config["title"] == nullptr) config["title"] = "Scarlet";
   if (config["width"] == nullptr) config["width"] = 640;

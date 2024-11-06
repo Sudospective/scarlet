@@ -12,6 +12,7 @@
 
 // Scarlet Declaration
 namespace Scarlet {
+  static std::string prefix;
   class Log;
   class Lua;
   class Input;
@@ -59,6 +60,10 @@ namespace Scarlet {
         sol::lib::string,
         sol::lib::package
       );
+      if (!prefix.empty()) {
+        const std::string package_path = (*state)["package"]["path"];
+        (*state)["package"]["path"] = package_path + (!package_path.empty() ? ";" : "") + prefix + "?.lua";
+      }
     }
     ~Lua() {
       delete state;
@@ -226,9 +231,10 @@ namespace Scarlet {
     }
     void PlayMusic(const char* path) {
       StopMusic();
-      music = Mix_LoadMUS(path);
+      std::string filepath = prefix + std::string(path);
+      music = Mix_LoadMUS(filepath.c_str());
       if (!music) {
-        Log::Error("Unable to load file '" + std::string(path) + "': " + std::string(Mix_GetError()));
+        Log::Error("Unable to load file '" + filepath + "': " + std::string(Mix_GetError()));
       }
       Mix_PlayMusic(music, -1);
     }
@@ -414,8 +420,8 @@ namespace Scarlet {
       (*lua)["update"] = [](float) {};
       (*lua)["draw"] = []() {};
 
-      if (std::filesystem::exists("main.lua")) {
-        lua->script_file("main.lua");
+      if (std::filesystem::exists(prefix + "main.lua")) {
+        lua->script_file(prefix + "main.lua");
       }
 
       (*lua)["init"]();
@@ -434,7 +440,6 @@ namespace Scarlet {
       while (SDL_PeepEvents(&event, 1, SDL_GETEVENT, SDL_FIRSTEVENT, SDL_LASTEVENT) > 0) {
         switch (event.type) {
           case SDL_QUIT: {
-            Log::Print("Quit invoked.");
             Stop();
             break;
           }
