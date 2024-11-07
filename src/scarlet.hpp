@@ -78,8 +78,12 @@ namespace Scarlet {
       }
       PHYSFS_File* file = PHYSFS_openRead(path);
       int length = PHYSFS_fileLength(file);
-      unsigned char data[length];
-      PHYSFS_readBytes(file, data, PHYSFS_fileLength(file));
+      std::vector<unsigned char> data;
+      for (int i = 0; i < length; i++) {
+        data.push_back(0);
+      }
+      //unsigned char data[length];
+      PHYSFS_readBytes(file, data.data(), PHYSFS_fileLength(file));
       std::string ret;
       for (unsigned char datum : data) {
         ret += datum;
@@ -295,11 +299,11 @@ namespace Scarlet {
     void PlayMusic(const char* path) {
       StopMusic();
       const std::string dataStr = File::Read(path);
-      unsigned char data[dataStr.length()];
+      std::vector<unsigned char> data;
       for (int i = 0; i < dataStr.length(); i++) {
-        data[i] = static_cast<unsigned char>(dataStr[i]);
+        data.push_back(static_cast<unsigned char>(dataStr[i]));
       }
-      SDL_RWops* musicMem = SDL_RWFromConstMem(data, dataStr.length());
+      SDL_RWops* musicMem = SDL_RWFromConstMem(data.data(), data.size());
       music = Mix_LoadMUS_RW(musicMem, 1);
       if (!music) {
         Log::Error("Unable to load file music file: " + std::string(Mix_GetError()));
