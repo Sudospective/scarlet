@@ -51,12 +51,12 @@ function init()
   bg.w = sw
   bg.h = sh
 
-  dummy:LoadTexture("assets/dummy.png")
+  dummy:LoadTexture("/assets/dummy.png")
   dummy.color = {r = 0, g = 1, b = 0, a = 1}
   dummy.x = scx
   dummy.y = scy
 
-  purple:LoadTexture("assets/purple-run.png")
+  purple:LoadTexture("/assets/purple-run.png")
   purple:LoadFrameData({
     animations = {
       -- Run Right
@@ -140,7 +140,7 @@ function init()
   goodboy.w = 64
   goodboy.h = 64
 
-  hey:LoadFont("assets/sudo.ttf", 48)
+  hey:LoadFont("/assets/sudo.ttf", 48)
   hey.color = {r = 1, g = 1, b = 0, a = 1}
   hey.text = "Hey Jude"
   hey.align.h = 0
@@ -148,10 +148,10 @@ function init()
   hey.x = 24
   hey.y = sh - 24
 
-  bass:LoadSource("assets/bass.wav")
+  bass:LoadSource("/assets/bass.wav")
   bass.volume = 0.05
 
-  scarlet.music.play("assets/snuffy.ogg")
+  scarlet.music.play("/assets/snuffy.ogg")
   scarlet.music.volume(0.05)
 end
 
