@@ -40,7 +40,6 @@ namespace Scarlet {
   class File {
    public:
     static bool Init(const char* argv0) {
-      Log::Print("Attempting to mount at " + prefix + "...");
       if (!PHYSFS_init(argv0)) {
         PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
         const char* error = PHYSFS_getErrorByCode(code);
@@ -51,6 +50,7 @@ namespace Scarlet {
       if (path.empty()) {
         path = std::filesystem::current_path().generic_string();
       }
+      Log::Print("Attempting to mount at " + path + "...");
       if (!PHYSFS_mount(path.c_str(), nullptr, 1)) {
         PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
         const char* error = PHYSFS_getErrorByCode(code);
