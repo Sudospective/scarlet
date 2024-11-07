@@ -41,21 +41,37 @@ class Label : public Gizmo {
     if (broken) return;
     if (font)
       TTF_CloseFont(font);
-    std::string filepath = Scarlet::prefix + std::string(path);
-    font = TTF_OpenFont(filepath.c_str(), size);
-  }
-  void SetText(const char* newText) {
-    text = newText;
-    if (broken) return;
-    if (font) {
-      SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
-      SDL_Color c = {255u, 255u, 255u, 255u};
-      surface = TTF_RenderText_Solid(font, text.c_str(), c);
-      texture = SDL_CreateTextureFromSurface(renderer, surface);
-      w = surface->w;
-      h = surface->h;
-      SDL_FreeSurface(surface);
+    const std::string dataStr = Scarlet::File::Read(path);
+    SDL_RWops* fontMem = SDL_RWFromConstMem(dataStr.c_str(), dataStr.length());
+    if (!fontMem) {
+      Scarlet::Log::Error("Unable to load font into memory.");
+      return;
     }
+    font = TTF_OpenFontRW(fontMem, 1, size);
+    if (!font) {
+      Scarlet::Log::Error("Unable to open font.");
+    }
+  }
+  void SetText(std::string newText) {
+    text = newText;
+    if (broken || !font) return;
+    SDL_Color c = {255u, 255u, 255u, 255u};
+    surface = TTF_RenderUTF8_Solid(font, text.c_str(), c);
+    if (!surface) {
+      Scarlet::Log::Error("Unable to create surface: " + std::string(TTF_GetError()));
+      return;
+    }
+
+    SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!texture) {
+      Scarlet::Log::Error("Unable to create texture: " + std::string(SDL_GetError()));
+      return;
+    }
+
+    w = surface->w;
+    h = surface->h;
+    SDL_FreeSurface(surface);
   }
   std::string GetText() const {
     return text;

@@ -78,10 +78,10 @@ namespace Scarlet {
       }
       PHYSFS_File* file = PHYSFS_openRead(path);
       int length = PHYSFS_fileLength(file);
-      char data[length];
+      unsigned char data[length];
       PHYSFS_readBytes(file, data, PHYSFS_fileLength(file));
       std::string ret;
-      for (char datum : data) {
+      for (unsigned char datum : data) {
         ret += datum;
       }
       return ret;
@@ -269,11 +269,14 @@ namespace Scarlet {
     void Init() {
       Log::Print("Initializing Audio...");
       Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG);
-      Mix_OpenAudio(
+      if (Mix_OpenAudio(
         MIX_DEFAULT_FREQUENCY,
         MIX_DEFAULT_FORMAT,
         2, 1024
-      );
+      ) < 0) {
+        Log::Error("Failed to initialize.");
+        return;
+      }
 
       sol::state* lua = Lua::GetInstance().GetState();
 
@@ -291,10 +294,16 @@ namespace Scarlet {
     }
     void PlayMusic(const char* path) {
       StopMusic();
-      std::string filepath = prefix + std::string(path);
-      music = Mix_LoadMUS(filepath.c_str());
+      const std::string dataStr = File::Read(path);
+      unsigned char data[dataStr.length()];
+      for (int i = 0; i < dataStr.length(); i++) {
+        data[i] = static_cast<unsigned char>(dataStr[i]);
+      }
+      SDL_RWops* musicMem = SDL_RWFromConstMem(data, dataStr.length());
+      music = Mix_LoadMUS_RW(musicMem, 1);
       if (!music) {
-        Log::Error("Unable to load file '" + filepath + "': " + std::string(Mix_GetError()));
+        Log::Error("Unable to load file music file: " + std::string(Mix_GetError()));
+        return;
       }
       Mix_PlayMusic(music, -1);
     }

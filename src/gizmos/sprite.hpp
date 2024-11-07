@@ -23,11 +23,15 @@ class Sprite : public Quad {
       SDL_DestroyTexture(texture);
     SDL_Renderer* renderer = Scarlet::Graphics::GetMainRenderer();
     int width, height, channels;
-    std::string filepath = Scarlet::prefix + std::string(path);
-    unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &channels, 0);
+    std::string dataStr = Scarlet::File::Read(path);
+    stbi_uc data[dataStr.length()];
+    for (int i = 0; i < dataStr.length(); i++) {
+      data[i] = static_cast<stbi_uc>(dataStr[i]);
+    }
+    stbi_uc* image = stbi_load_from_memory(data, dataStr.length(), &width, &height, &channels, 0);
     int pitch = width * 4;
     SDL_Surface* surface = SDL_CreateRGBSurfaceWithFormatFrom(
-      static_cast<void*>(data),
+      static_cast<void*>(image),
       width, height,
       32, pitch,
       SDL_PIXELFORMAT_ABGR8888
@@ -36,7 +40,7 @@ class Sprite : public Quad {
     w = surface->w;
     h = surface->h;
     SDL_FreeSurface(surface);
-    stbi_image_free(data);
+    stbi_image_free(image);
   }
   void Draw() {
     if (!texture) return;
