@@ -21,10 +21,11 @@ add_definitions(-DLUA)
 add_subdirectory(src)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-  "include"
   ${ENGINE_MAIN_SRC}
-  ${PHYSFS_INCLUDE_DIR}
+  ${ENGINE_MAIN_INC}
+
   ${LUA_INCLUDE_DIR}
+  ${PHYSFS_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -32,6 +33,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   SDL2_mixer::SDL2_mixer
   SDL2_ttf::SDL2_ttf
   sol2::sol2
+
   ${LUA_LIBRARY}
   ${PHYSFS_LIBRARY}
 )
