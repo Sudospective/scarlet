@@ -12,13 +12,16 @@
 
 // Scarlet Declaration
 namespace Scarlet {
-  static std::string prefix;
+  // Classes
   class Log;
   class Lua;
   class Input;
   class Audio;
   class Graphics;
   class Engine;
+
+  // Variables
+  static std::string prefix;
 };
 
 // Scarlet Implementation
