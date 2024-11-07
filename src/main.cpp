@@ -95,10 +95,12 @@ int handleUpdate(void*) {
 }
 
 int main(int argc, char* argv[]) {
-  Scarlet::prefix = "";
+  prefix = "";
   if (argc > 1) {
-    Scarlet::prefix = std::string(argv[1]) + "/";
+    prefix = std::string(argv[1]);
   }
+
+  if (!File::Init(argv[0])) return 1;
 
   engine = new Engine;
 
@@ -114,9 +116,9 @@ int main(int argc, char* argv[]) {
 
   sol::table config = lua->create_table();
 
-  if (std::filesystem::exists(prefix + "config.lua")) {
-    config = lua->script_file(prefix + "config.lua");
-  }
+  std::string code = File::Read("config.lua");
+  if (!code.empty()) config = lua->script(code);
+
   if (config["title"] == nullptr) config["title"] = "Scarlet";
   if (config["width"] == nullptr) config["width"] = 640;
   if (config["height"] == nullptr) config["height"] = 360;

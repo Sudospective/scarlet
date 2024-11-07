@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 find_package(Lua 5.4 REQUIRED)
+find_package(PhysFS REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
 find_package(SDL2_ttf REQUIRED)
@@ -23,6 +24,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "include"
   ${ENGINE_MAIN_SRC}
   ${ENGINE_LUA_INC}
+  ${PHYSFS_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -31,4 +33,5 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   SDL2_ttf::SDL2_ttf
   sol2::sol2
   ${LUA_LIBRARY}
+  ${PHYSFS_LIBRARY}
 )

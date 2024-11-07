@@ -6,6 +6,7 @@
 #include <vector>
 
 #define SDL_MAIN_HANDLED
+#include <physfs.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <sol/sol.hpp>
@@ -14,14 +15,14 @@
 namespace Scarlet {
   // Classes
   class Log;
+  class File;
   class Lua;
   class Input;
   class Audio;
   class Graphics;
   class Engine;
-
   // Variables
-  static std::string prefix;
+  std::string prefix;
 };
 
 // Scarlet Implementation
@@ -29,10 +30,61 @@ namespace Scarlet {
   class Log {
    public:
     static void Print(std::string msg) {
-      std::cout << "SCARLET: " << msg << std::endl;
+      std::cout << "LOG: " << msg << std::endl;
     }
     static void Error(std::string msg) {
-      std::cerr << "SCARLET: " << msg << std::endl;
+      std::cerr << "ERROR: " << msg << std::endl;
+    }
+  };
+
+  class File {
+   public:
+    static bool Init(const char* argv0) {
+      Log::Print("Attempting to mount at " + prefix + "...");
+      if (!PHYSFS_init(argv0)) {
+        PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
+        const char* error = PHYSFS_getErrorByCode(code);
+        Log::Error("Unable to initialize filesystem: " + std::string(error));
+        return false;
+      }
+      std::string path = prefix;
+      if (path.empty()) {
+        path = std::filesystem::current_path();
+      }
+      if (!PHYSFS_mount(path.c_str(), nullptr, 1)) {
+        PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
+        const char* error = PHYSFS_getErrorByCode(code);
+        Log::Error("Unable to mount path: " + std::string(error));
+        return false;
+      }
+      prefix = PHYSFS_getRealDir("/");
+      prefix += "/";
+
+      Log::Print("Files should be available at " + std::string(prefix));
+
+      return true;
+    }
+    static void Deinit() {
+      PHYSFS_deinit();
+    }
+
+   public:
+    static std::string Read(const char* path) {
+      if (!PHYSFS_exists(path)) {
+        PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
+        const char* error = PHYSFS_getErrorByCode(code);
+        Log::Error("Unable to read file: " + std::string(error));
+        return "";
+      }
+      PHYSFS_File* file = PHYSFS_openRead(path);
+      int length = PHYSFS_fileLength(file);
+      char data[length];
+      PHYSFS_readBytes(file, data, PHYSFS_fileLength(file));
+      std::string ret;
+      for (char datum : data) {
+        ret += datum;
+      }
+      return ret;
     }
   };
 
@@ -63,10 +115,15 @@ namespace Scarlet {
         sol::lib::string,
         sol::lib::package
       );
-      if (!prefix.empty()) {
-        const std::string package_path = (*state)["package"]["path"];
-        (*state)["package"]["path"] = package_path + (!package_path.empty() ? ";" : "") + prefix + "?.lua";
-      }
+      state->add_package_loader([&](std::string path) {
+        std::replace(path.begin(), path.end(), '.', '/');
+        std::string luaModule = File::Read((path + ".lua").c_str());
+        if (luaModule.empty()) {
+          luaModule = File::Read((path + "/init.lua").c_str());
+        }
+        sol::load_result res = state->load_buffer(luaModule.data(), luaModule.size(), path);
+        return sol::function(res);
+      });
     }
     ~Lua() {
       delete state;
@@ -423,9 +480,8 @@ namespace Scarlet {
       (*lua)["update"] = [](float) {};
       (*lua)["draw"] = []() {};
 
-      if (std::filesystem::exists(prefix + "main.lua")) {
-        lua->script_file(prefix + "main.lua");
-      }
+      std::string code = File::Read("main.lua");
+      if (!code.empty()) lua->script(code);
 
       (*lua)["init"]();
     }
