@@ -14,7 +14,7 @@ find_package(SDL2_ttf REQUIRED)
 find_package(sol2 REQUIRED)
 
 set(ENGINE_MAIN_SRC "${CMAKE_SOURCE_DIR}/src")
-set(ENGINE_LUA_INC "${LUA_INCLUDE_DIR}")
+set(ENGINE_MAIN_INC "${CMAKE_SOURCE_DIR}/include")
 
 add_definitions(-DLUA)
 
@@ -23,8 +23,8 @@ add_subdirectory(src)
 target_include_directories(${PROJECT_NAME} PUBLIC
   "include"
   ${ENGINE_MAIN_SRC}
-  ${ENGINE_LUA_INC}
   ${PHYSFS_INCLUDE_DIR}
+  ${LUA_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
