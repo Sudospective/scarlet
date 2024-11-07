@@ -95,6 +95,10 @@ int handleUpdate(void*) {
 }
 
 int main(int argc, char* argv[]) {
+  std::cout << "----------------------" << std::endl;
+  std::cout << "--- SCARLET ENGINE ---" << std::endl;
+  std::cout << "----------------------" << std::endl;
+
   prefix = "";
   if (argc > 1) {
     prefix = std::string(argv[1]);
