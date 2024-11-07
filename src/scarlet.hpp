@@ -49,7 +49,7 @@ namespace Scarlet {
       }
       std::string path = prefix;
       if (path.empty()) {
-        path = std::filesystem::current_path();
+        path = std::filesystem::current_path().generic_string();
       }
       if (!PHYSFS_mount(path.c_str(), nullptr, 1)) {
         PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
