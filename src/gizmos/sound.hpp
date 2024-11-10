@@ -20,8 +20,8 @@ class Sound : public Gizmo {
 
  public:
   void LoadSource(const char* path) {
-    const std::string dataStr = Scarlet::File::Read(path);
-    SDL_RWops* soundMem = SDL_RWFromConstMem(dataStr.c_str(), dataStr.length());
+    std::vector<uint8_t> data = Scarlet::File::ReadRaw(path);
+    SDL_RWops* soundMem = SDL_RWFromConstMem(data.data(), data.size());
     chunk = Mix_LoadWAV_RW(soundMem, 1);
     if (!chunk) {
       Scarlet::Log::Error("Unable to load file '" + std::string(path) + "': " + std::string(Mix_GetError()));

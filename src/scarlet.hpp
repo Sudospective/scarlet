@@ -1,15 +1,17 @@
 #ifndef SCARLET_HPP
 #define SCARLET_HPP
 
+#define SDL_MAIN_HANDLED
+
 #include <iostream>
 #include <string>
 #include <vector>
 
-#define SDL_MAIN_HANDLED
-#include <physfs.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 #include <sol/sol.hpp>
+
+#include "vfspp/VFS.h"
 
 // Scarlet Declaration
 namespace Scarlet {
@@ -40,6 +42,30 @@ namespace Scarlet {
   class File {
    public:
     static bool Init(const char* argv0) {
+      Log::Print("Intializing filesystem...");
+
+      vfspp::IFileSystemPtr fs = nullptr;
+      std::string path = prefix;
+      if (path.empty()) {
+        path = std::filesystem::current_path().generic_string();
+      }
+      Log::Print("Attempting to mount at " + path + "...");
+      auto found = path.find(".zip");
+      if (found != std::string::npos) {
+        fs = std::make_unique<vfspp::ZipFileSystem>(path);
+      }
+      else {
+        fs = std::make_unique<vfspp::NativeFileSystem>(path);
+      }
+
+      fs->Initialize();
+
+      system = vfspp::VirtualFileSystemPtr(new vfspp::VirtualFileSystem);
+      system->AddFileSystem("/", std::move(fs));
+
+      prefix += "/";
+
+      /*
       if (!PHYSFS_init(argv0)) {
         PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
         const char* error = PHYSFS_getErrorByCode(code);
@@ -59,37 +85,53 @@ namespace Scarlet {
       }
       prefix = PHYSFS_getRealDir("/");
       prefix += "/";
+      */
 
-      Log::Print("Files should be available at " + std::string(prefix));
+      Log::Print("Filesystem initialized.");
+      Log::Print("Virtual root path is at " + std::string(prefix));
 
       return true;
-    }
-    static void Deinit() {
-      PHYSFS_deinit();
     }
 
    public:
     static std::string Read(const char* path) {
-      if (!PHYSFS_exists(path)) {
-        PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
-        const char* error = PHYSFS_getErrorByCode(code);
-        Log::Error("Unable to read file: " + std::string(error));
-        return "";
-      }
-      PHYSFS_File* file = PHYSFS_openRead(path);
-      int length = PHYSFS_fileLength(file);
-      std::vector<unsigned char> data;
-      for (int i = 0; i < length; i++) {
-        data.push_back(0);
-      }
-      //unsigned char data[length];
-      PHYSFS_readBytes(file, data.data(), PHYSFS_fileLength(file));
+      std::vector<uint8_t> data = ReadRaw(path);
       std::string ret;
-      for (unsigned char datum : data) {
+      for (uint8_t datum : data) {
         ret += datum;
       }
       return ret;
     }
+    static std::vector<uint8_t> ReadRaw(const char* path) {
+      std::vector<uint8_t> data;
+
+      std::string filepath = path;
+
+      if (filepath[0] != '/') {
+        filepath = "/" + filepath;
+      }
+
+      if (auto file = system->OpenFile(
+        vfspp::FileInfo(filepath),
+        vfspp::IFile::FileMode::Read
+      )) {
+        if (file->IsOpened()) {
+          file->Read(data, file->Size());
+          file->Close();
+        }
+        else {
+          Log::Error("Cannot open file " + std::string(path) + ": File not open");
+        }
+      }
+      else {
+        Log::Error("Cannot open file " + std::string(path) + ": Unknown error");
+      }
+
+      return data;
+    }
+  
+   public:
+    inline static vfspp::VirtualFileSystemPtr system = nullptr;
   };
 
   class Lua {
@@ -120,12 +162,16 @@ namespace Scarlet {
         sol::lib::package
       );
       state->add_package_loader([&](std::string path) {
-        std::replace(path.begin(), path.end(), '.', '/');
-        std::string luaModule = File::Read((path + ".lua").c_str());
-        if (luaModule.empty()) {
-          luaModule = File::Read((path + "/init.lua").c_str());
+        std::string file = path;
+        if (file[0] != '/') {
+          file = "/" + file;
         }
-        sol::load_result res = state->load_buffer(luaModule.data(), luaModule.size(), path);
+        std::replace(file.begin(), file.end(), '.', '/');
+        std::string luaModule = File::Read((file + ".lua").c_str());
+        if (luaModule.empty()) {
+          luaModule = File::Read((file + "/init.lua").c_str());
+        }
+        auto res = state->load_buffer(luaModule.c_str(), luaModule.length(), path);
         return sol::function(res);
       });
     }
@@ -298,15 +344,15 @@ namespace Scarlet {
     }
     void PlayMusic(const char* path) {
       StopMusic();
-      const std::string dataStr = File::Read(path);
-      std::vector<unsigned char> data;
-      for (int i = 0; i < dataStr.length(); i++) {
-        data.push_back(static_cast<unsigned char>(dataStr[i]));
+      std::vector<uint8_t> data = File::ReadRaw(path);
+      if (data.empty()) {
+        Log::Error("Unable to load music file: Data empty");
+        return;
       }
       SDL_RWops* musicMem = SDL_RWFromConstMem(data.data(), data.size());
       music = Mix_LoadMUS_RW(musicMem, 1);
       if (!music) {
-        Log::Error("Unable to load file music file: " + std::string(Mix_GetError()));
+        Log::Error("Unable to load music file: " + std::string(Mix_GetError()));
         return;
       }
       Mix_PlayMusic(music, -1);

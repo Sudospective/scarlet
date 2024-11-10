@@ -13,7 +13,6 @@ class Label : public Gizmo {
     broken = false;
 
     font = nullptr;
-    surface = nullptr;
     texture = nullptr;
 
     if (TTF_Init() < 0) {
@@ -23,10 +22,10 @@ class Label : public Gizmo {
 
     sol::state* lua = Scarlet::Lua::GetInstance().GetState();
     color = lua->create_table_with(
-      "r", 255u,
-      "g", 255u,
-      "b", 255u,
-      "a", 255u
+      "r", 1.0f,
+      "g", 1.0f,
+      "b", 1.0f,
+      "a", 1.0f
     );
     align = lua->create_table_with(
       "h", 0.5f,
@@ -38,25 +37,28 @@ class Label : public Gizmo {
     TTF_Quit();
   }
   void LoadFont(const char* path, int size) {
-    if (broken) return;
     if (font)
       TTF_CloseFont(font);
-    const std::string dataStr = Scarlet::File::Read(path);
-    SDL_RWops* fontMem = SDL_RWFromConstMem(dataStr.c_str(), dataStr.length());
+    std::vector<uint8_t> data = Scarlet::File::ReadRaw(path);
+    if (data.empty()) {
+      Scarlet::Log::Error("Unable to load font file: Data empty");
+      return;
+    }
+    SDL_RWops* fontMem = SDL_RWFromConstMem(data.data(), data.size());
     if (!fontMem) {
-      Scarlet::Log::Error("Unable to load font into memory.");
+      Scarlet::Log::Error("Unable to load font into memory: " + std::string(SDL_GetError()));
       return;
     }
     font = TTF_OpenFontRW(fontMem, 1, size);
     if (!font) {
-      Scarlet::Log::Error("Unable to open font.");
+      Scarlet::Log::Error("Unable to open font: " + std::string(TTF_GetError()));
     }
   }
-  void SetText(std::string newText) {
+  void SetText(const char* newText) {
     text = newText;
     if (broken || !font) return;
     SDL_Color c = {255u, 255u, 255u, 255u};
-    surface = TTF_RenderUTF8_Solid(font, text.c_str(), c);
+    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), c);
     if (!surface) {
       Scarlet::Log::Error("Unable to create surface: " + std::string(TTF_GetError()));
       return;
@@ -79,6 +81,7 @@ class Label : public Gizmo {
   void Draw() {
     if (broken || !font || text.empty())
       return;
+
     SDL_Rect rect;
     float alignH = align["h"];
     float alignV = align["v"];
@@ -125,7 +128,6 @@ class Label : public Gizmo {
  private:
   bool broken;
   float w, h;
-  SDL_Surface* surface;
   SDL_Texture* texture;
   TTF_Font* font;
 };
