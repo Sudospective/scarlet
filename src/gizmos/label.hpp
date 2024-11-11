@@ -36,7 +36,7 @@ class Label : public Gizmo {
     TTF_CloseFont(font);
     TTF_Quit();
   }
-  void LoadFont(const char* path, int size) {
+  void LoadFont(const char* path, int size = 12) {
     if (font)
       TTF_CloseFont(font);
     std::vector<uint8_t> data = Scarlet::File::ReadRaw(path);
