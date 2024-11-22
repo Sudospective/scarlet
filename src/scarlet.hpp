@@ -32,16 +32,19 @@ namespace Scarlet {
   class Log {
    public:
     static void Print(std::string msg) {
-      std::cout << "LOG: " << msg << std::endl;
+      std::cout << "LOG:   \t" << msg << std::endl;
+    }
+    static void Warn(std::string msg) {
+      std::cout << "WARN:  \t" << msg << std::endl;
     }
     static void Error(std::string msg) {
-      std::cerr << "ERROR: " << msg << std::endl;
+      std::cerr << "ERROR: \t" << msg << std::endl;
     }
   };
 
   class File {
    public:
-    static bool Init(const char* argv0) {
+    static bool Init() {
       Log::Print("Intializing filesystem...");
 
       vfspp::IFileSystemPtr fs = nullptr;
@@ -50,11 +53,16 @@ namespace Scarlet {
         path = std::filesystem::current_path().generic_string();
       }
       Log::Print("Attempting to mount at " + path + "...");
-      auto found = path.find(".zip");
+      auto found = path.find(".scar");
+      if (found == std::string::npos) {
+        found = path.find(".zip");
+      }
       if (found != std::string::npos) {
+        Log::Print("Using ZIP filesystem");
         fs = std::make_unique<vfspp::ZipFileSystem>(path);
       }
       else {
+        Log::Print("Using native filesystem");
         fs = std::make_unique<vfspp::NativeFileSystem>(path);
       }
 
@@ -64,28 +72,6 @@ namespace Scarlet {
       system->AddFileSystem("/", std::move(fs));
 
       prefix += "/";
-
-      /*
-      if (!PHYSFS_init(argv0)) {
-        PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
-        const char* error = PHYSFS_getErrorByCode(code);
-        Log::Error("Unable to initialize filesystem: " + std::string(error));
-        return false;
-      }
-      std::string path = prefix;
-      if (path.empty()) {
-        path = std::filesystem::current_path().generic_string();
-      }
-      Log::Print("Attempting to mount at " + path + "...");
-      if (!PHYSFS_mount(path.c_str(), nullptr, 1)) {
-        PHYSFS_ErrorCode code = PHYSFS_getLastErrorCode();
-        const char* error = PHYSFS_getErrorByCode(code);
-        Log::Error("Unable to mount path: " + std::string(error));
-        return false;
-      }
-      prefix = PHYSFS_getRealDir("/");
-      prefix += "/";
-      */
 
       Log::Print("Filesystem initialized.");
       Log::Print("Virtual root path is at " + std::string(prefix));
@@ -111,20 +97,19 @@ namespace Scarlet {
         filepath = "/" + filepath;
       }
 
-      if (auto file = system->OpenFile(
+      vfspp::IFilePtr file = system->OpenFile(
         vfspp::FileInfo(filepath),
         vfspp::IFile::FileMode::Read
-      )) {
-        if (file->IsOpened()) {
-          file->Read(data, file->Size());
-          file->Close();
+      );
+      if (file && file->IsOpened()) {
+        uint64_t fileSize = file->Size();
+        if (file->Read(data, fileSize) != data.size()) {
+          Log::Warn(std::string(path) + ": Possible file data mismatch");
         }
-        else {
-          Log::Error("Cannot open file " + std::string(path) + ": File not open");
-        }
+        file->Close();
       }
       else {
-        Log::Error("Cannot open file " + std::string(path) + ": Unknown error");
+        Log::Warn("Cannot read file " + std::string(path) + ": File not open");
       }
 
       return data;
@@ -350,6 +335,10 @@ namespace Scarlet {
         return;
       }
       SDL_RWops* musicMem = SDL_RWFromConstMem(data.data(), data.size());
+      if (!musicMem) {
+        Log::Error("Unable to load music file: " + std::string(SDL_GetError()));
+        return;
+      }
       music = Mix_LoadMUS_RW(musicMem, 1);
       if (!music) {
         Log::Error("Unable to load music file: " + std::string(Mix_GetError()));

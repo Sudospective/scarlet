@@ -1,7 +1,3 @@
-#include <filesystem>
-
-#include <SDL2/SDL_thread.h>
-
 #include "gizmos.hpp"
 #include "scarlet.hpp"
 
@@ -35,7 +31,7 @@ int main(int argc, char* argv[]) {
     prefix = std::string(argv[1]);
   }
 
-  if (!File::Init(argv[0])) return 1;
+  if (!File::Init()) return 1;
 
   engine = new Engine;
 

@@ -290,6 +290,7 @@ private:
             dir = std::ios_base::cur;
         }
         
+        m_Stream.clear();
         m_Stream.seekg(offset, dir);
         if (m_Stream.fail()) {
             return 0;
