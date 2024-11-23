@@ -339,22 +339,26 @@ namespace Scarlet {
         Log::Error("Unable to load music file: " + std::string(SDL_GetError()));
         return;
       }
-      music = Mix_LoadMUS_RW(musicMem, 1);
+      //music = Mix_LoadMUS_RW(musicMem, 1);
+      music = Mix_LoadWAV_RW(musicMem, 1);
       if (!music) {
         Log::Error("Unable to load music file: " + std::string(Mix_GetError()));
         return;
       }
-      Mix_PlayMusic(music, -1);
+      //Mix_PlayMusic(music, -1);
+      channel = Mix_PlayChannel(-1, music, -1);
     }
     void StopMusic() {
-      if (Mix_PlayingMusic() > 0) {
-        Mix_PauseMusic();
+      if (Mix_Playing(channel) > 0) {
+        //Mix_PauseMusic();
+        Mix_Pause(channel);
       }
     }
     void SetVolume(float vol) {
       volume = vol;
       float logVol = log(1 + volume);
-      Mix_VolumeMusic(MIX_MAX_VOLUME * logVol);
+      //Mix_VolumeMusic(MIX_MAX_VOLUME * logVol);
+      Mix_VolumeChunk(music, MIX_MAX_VOLUME * logVol);
     }
     float GetVolume() const {
       return volume;
@@ -366,14 +370,15 @@ namespace Scarlet {
    private:
     Audio() { music = nullptr; }
     ~Audio() {
-      if (Mix_PlayingMusic() > 0)
+      if (Mix_Playing(channel) > 0)
         StopMusic();
       Mix_CloseAudio();
     }
 
    private:
+    int channel = 0;
     float volume;
-    Mix_Music* music;
+    Mix_Chunk* music;
     inline static Audio* instance = nullptr;
   };
 
