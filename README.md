@@ -1,4 +1,4 @@
-**What is Scarlet?**
+**What is Scarlet?**  
 Scarlet is a small 2D game engine originally built as a portfolio project. You can create games using Lua, similar to Love2D.
 
 **Known Issues**
