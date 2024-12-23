@@ -58,7 +58,7 @@ class Label : public Gizmo {
     text = newText;
     if (broken || !font) return;
     SDL_Color c = {255u, 255u, 255u, 255u};
-    SDL_Surface* surface = TTF_RenderUTF8_Solid(font, text.c_str(), c);
+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font, text.c_str(), c);
     if (!surface) {
       Scarlet::Log::Error("Unable to create surface: " + std::string(TTF_GetError()));
       return;
@@ -83,10 +83,8 @@ class Label : public Gizmo {
       return;
 
     SDL_Rect rect;
-    float alignH = align["h"];
-    float alignV = align["v"];
-    rect.x = x - w * alignH;
-    rect.y = y - h * alignV;
+    rect.x = x - w * align["h"];
+    rect.y = y - h * align["v"];
     rect.w = w;
     rect.h = h;
 

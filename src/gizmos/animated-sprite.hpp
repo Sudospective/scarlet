@@ -46,6 +46,14 @@ class AnimatedSprite : public Sprite {
     }
     SetCurrentAnimation(1);
   }
+  void LoadFrameDataFromPath(const char* path) {
+    sol::state* lua = Scarlet::Lua::GetInstance().GetState();
+    std::string code = Scarlet::File::Read(path);
+    if (!code.empty()) {
+      sol::table animTable = lua->script(code);
+      LoadFrameData(animTable);
+    }
+  }
   void UpdateAnimation(float dt) {
     if (!currentAnim) return;
 

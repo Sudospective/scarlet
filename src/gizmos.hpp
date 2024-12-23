@@ -75,6 +75,7 @@ void registerGizmos(sol::state* lua) {
   luaAnimSprite["Draw"] = &AnimatedSprite::Draw;
   luaAnimSprite["LoadTexture"] = &AnimatedSprite::LoadTexture;
   luaAnimSprite["LoadFrameData"] = &AnimatedSprite::LoadFrameData;
+  luaAnimSprite["LoadFrameDataFromPath"] = &AnimatedSprite::LoadFrameDataFromPath;
   luaAnimSprite["SetCurrentAnimation"] = &AnimatedSprite::SetCurrentAnimation;
 }
 
