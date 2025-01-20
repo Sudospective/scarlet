@@ -83,8 +83,10 @@ class Label : public Gizmo {
       return;
 
     SDL_Rect rect;
-    rect.x = x - w * align["h"];
-    rect.y = y - h * align["v"];
+    float alignH = align["h"];
+    float alignV = align["v"];
+    rect.x = x - w * alignH;
+    rect.y = y - h * alignV;
     rect.w = w;
     rect.h = h;
 
